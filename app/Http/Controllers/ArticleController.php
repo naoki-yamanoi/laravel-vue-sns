@@ -26,7 +26,15 @@ class ArticleController extends Controller
 
     public function create()
     {
-        return view('articles.create');
+        // 全てのタグ情報を取得
+        $allTagNames = Tag::all()->map(function ($tag)
+        {
+            return ['text' => $tag->name];
+        });
+
+        return view('articles.create', [
+            'allTagNames' => $allTagNames,
+        ]);
     }
 
     public function store(ArticleRequest $request, Article $article)
@@ -66,13 +74,47 @@ class ArticleController extends Controller
 
     public function edit(Article $article)
     {
+        // この記事に登録されているタグを全て取得。textをキーとした連想配列として取得。
+        $tagNames = $article->tags->map(function ($tag)
+        {
+            // ArticleTagsInput.vueにtextキーがある。
+            return ['text' => $tag->name];
+        });
+        // dd($tagNames);
+
+        // 全てのタグ情報を取得
+        $allTagNames = Tag::all()->map(function ($tag)
+        {
+            return ['text' => $tag->name];
+        });
+
         // ['article' => $article->id]でも可
-        return view('articles.edit', ['article' => $article]);
+        return view('articles.edit', [
+            'article' => $article,
+            'tagNames' => $tagNames,
+            'allTagNames' => $allTagNames,
+        ]);
     }
 
     public function update(ArticleRequest $request, Article $article)
     {
+        // dd($article->fill($request->all()));
         $article->fill($request->all())->save();
+        // dd($request->tags);
+        // dd($article->tags());
+
+        // detachメソッドを引数無しで使うと、そのリレーションを紐付ける中間テーブルのレコードが全削除される。
+        $article->tags()->detach();
+
+        $request->tags->each(function ($tagName) use ($article)
+        {
+            // 引数の値を登録し、モデルを返す。登録済みならモデルのみ返す
+            $tag = Tag::firstOrCreate(['name' => $tagName]);
+            // dd($tag);
+            // 中間テーブルに登録
+            $article->tags()->attach($tag);
+        });
+
         return redirect()->route('articles.index');
     }
 
