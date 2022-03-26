@@ -6,6 +6,7 @@ import Vue from "vue";
 // import "bootstrap/dist/css/bootstrap.css";
 import ArticleLike from "./components/ArticleLike";
 import ArticleTagsInput from "./components/ArticleTagsInput";
+import FollowButton from "./components/FollowButton";
 
 const app = new Vue({
   el: "#app",
@@ -14,6 +15,7 @@ const app = new Vue({
     // App,
     ArticleLike,
     ArticleTagsInput,
+    FollowButton,
   },
   //   template: "<App />",
 });
